@@ -1,0 +1,23 @@
+### Log in (success)
+POST http://localhost:3001/api/sessions
+Content-Type: application/json
+
+{
+  "email": "pam@dm.com",
+  "password": "password"
+}
+
+### Check current session
+GET http://localhost:3001/api/sessions/current
+
+### Log out
+DELETE http://localhost:3001/api/sessions/current
+
+### Log in (wrong password)
+POST http://localhost:3001/api/sessions
+Content-Type: application/json
+
+{
+  "email": "pam@dm.com",
+  "password": "wrongpassword"
+}
