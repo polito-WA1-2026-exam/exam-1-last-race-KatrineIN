@@ -8,8 +8,26 @@ import cors from "cors";
 import session from "express-session";
 import passport from "passport";
 import LocalStrategy from "passport-local";
+import { body, param, validationResult } from "express-validator";
+
+import { pickStartAndDestination, validateRoute, runExecution } from "./game-logic.js";
 
 import { getUserByCredentials } from "./dao-users.js";
+import {
+  getNetworkMap,
+  getAllStations,
+  getAllSegments
+} from "./dao-network.js";
+
+import {
+  createGame,
+  getGameById,
+  saveGameSteps,
+  completeGame,
+  getGameSteps,
+  getAllEvents,
+  getRanking
+} from "./dao-games.js";
 
 
 // init Express
@@ -91,11 +109,20 @@ const isLoggedIn = (req, res, next) => {
 };
 
 
-/* ROUTES */
+// Validation middleware: stop the request with 422 if any validator failed.
+const checkValidation = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+  return next();
+};
 
-/* Auth routes */
+
+
+// ----------------------------- AUTH ROUTES ---------------------------
+
 // POST /api/sessions — log in
-
 app.post("/api/sessions", (req, res, next) => {
   // passport.authenticate("local") uses the LocalStrategy defined above.
   // It checks the email and password from req.body.
@@ -139,9 +166,151 @@ app.delete("/api/sessions/current", (req, res) => {
   });
 });
 
-// TODO : Add exam-specific routes below ===
-// Use isLoggedIn middleware on routes that require auth, e.g.:
-// app.get("/api/items", isLoggedIn, (req, res) => { ... });
+
+
+// ----------------------------- NETWORK ROUTES ---------------------------
+
+// GET /api/network/map - full map with lines, for the Setup phase.
+app.get("/api/network/map", isLoggedIn, async (req, res) => { 
+  try {
+    const network = await getNetworkMap();
+    res.json(network);
+  } catch (err) {
+        res.status(500).json({ error: "Database error while fetching network map." });
+  }
+ });
+
+
+// GET /api/network/stations — station names only, for the Planning phase.
+app.get("/api/network/stations", isLoggedIn, async (req, res) => {
+  try {
+    const stations = await getAllStations();
+    res.json(stations);
+  } catch (err) {
+    res.status(500).json({ error: "Database error while fetching stations." });
+  }
+});
+
+
+// GET /api/network/segments — list of segments, no line info, for Planning.
+app.get("/api/network/segments", isLoggedIn, async (req, res) => {
+  try{
+    const segments = await getAllSegments();
+    res.json(segments);
+  } catch (err) {
+     res.status(500).json({ error: "Database error while fetching segments." });   
+  }
+});
+
+
+// ----------------------------- GAME ROUTES ---------------------------
+
+// POST /api/games — create a new game; the server assigns start + destination.
+app.post("/api/games", isLoggedIn, async (req, res) => {
+  try{
+    const userId = req.user.id;
+
+    const allStations = await getAllStations();
+    const allSegments = await getAllSegments();
+    const { start, destination } = pickStartAndDestination(allStations, allSegments, 3);
+
+    const gameId = await createGame(userId, start.id, destination.id);
+    res.status(201).json({ gameId, start, destination });
+
+  } catch (err) {
+      res.status(500).json({ error: "Database error while creating new game." });   
+  }
+});
+
+
+// GET /api/games/:id — fetch game state; includes steps only if completed.
+app.get("/api/games/:id", isLoggedIn, param("id").isInt(), checkValidation, async (req, res) => {
+    try{
+      const userId = req.user.id;
+      const gameId = Number(req.params.id);
+
+      const game = await getGameById(gameId, userId);
+      if (!game) {
+        return res.status(404).json({ error: "Game not found." });
+      }
+      if (game.status === 'completed') {
+        const steps = await getGameSteps(gameId); 
+        return res.json({ ...game, steps });
+      } 
+      res.json(game);
+    } catch (err) {
+       res.status(500).json({ error: "Database error while fetching game." });   
+    }
+});
+
+
+// POST /api/games/:id/submit — validate the route, run the execution
+// server-side, and complete the game in one request.
+app.post("/api/games/:id/submit", 
+  isLoggedIn, 
+  param("id").isInt(), 
+  body("route").isArray(), // empty array is allowed -> treated as invalid route
+  body("route.*.fromStationId").isInt(),
+  body("route.*.toStationId").isInt(),
+  checkValidation, 
+  async (req, res) => {
+    try{
+      const userId = req.user.id;
+      const gameId = Number(req.params.id);
+      const route = req.body.route;
+
+      // 1. fetch game
+      const game = await getGameById(gameId, userId);
+      if (!game) {
+        return res.status(404).json({ error: "Game not found." });
+      }
+
+      // 2. a game can only be submitted while still in planning
+      if (game.status !== "planning") {
+        return res.status(409).json({ error: "Game already completed." });
+      }
+
+      // 3. validate the submitted route against the network rules
+      const segments = await getAllSegments();
+      const isValid = validateRoute(route, segments, game.startStationId, game.destinationStationId);
+      
+      // 4. invalid or incomplete route -> player loses everything, score 0
+      if (!isValid) {
+        await completeGame(gameId, 0, false);
+        return res.json({ isValid: false, finalScore: 0 });
+      }
+
+      // 5. valid route -> run execution: one random event per step
+      const events = await getAllEvents();
+      const steps = runExecution(route, events, 20);
+      
+      // 6. persist steps + final score (a negative final score is stored as 0)
+      // route is non-empty when valid, so the last step always exists
+      const finalScore = Math.max(0, steps[steps.length - 1].remainingCoins);
+      await saveGameSteps(gameId, steps);
+      await completeGame(gameId, finalScore, true);
+
+      // 7. return enriched steps (with station + event names) for the animation
+      const enrichedSteps = await getGameSteps(gameId);
+      res.json({ isValid: true, finalScore, steps: enrichedSteps });
+    } catch (err) {
+      res.status(500).json({ error: "Database error while submitting route." });
+    }
+});
+
+
+/* Ranking route */
+
+// GET /api/ranking — best score per user. Logged-in only.
+app.get("/api/ranking", isLoggedIn, async (req, res) => {
+  try {
+    const rankings = await getRanking();
+    res.json(rankings)
+  } catch (err) {
+      res.status(500).json({ error: "Database error while fetching ranking." });   
+  }
+});
+
 
 
 /* Start server */
