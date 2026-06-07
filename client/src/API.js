@@ -47,13 +47,85 @@ async function logOut() {
   return handleResponse(response);
 }
 
-//  TODO EXAM: Add exam-specific API functions below 
-// Example:
-// async function getItems() {
-//   const response = await fetch(SERVER_URL + "/api/items", { credentials: "include" });
-//   return handleResponse(response);
-// }
+/* ----- NETWORK APIs ----- */
+
+// Get full map with lines, for the Setup phase.
+async function getNetworkMap() {
+  const response = await fetch(SERVER_URL + "/api/network/map", {
+    credentials: "include",
+  });
+    return handleResponse(response);
+};
+
+// Get station names only, for the Planning phase.
+async function getStations() {
+  const response = await fetch(SERVER_URL + "/api/network/stations", {
+    credentials: "include"});
+    return handleResponse(response);
+};
+
+// List of segments (no line info), for the Planning phase.
+async function getSegments() {
+  const response = await fetch(SERVER_URL + "/api/network/segments", {
+    credentials: "include"
+  });
+  return handleResponse(response);
+};
+
+/* ----- GAME APIs ----- */
+
+// Create a new game. The server assigns start + destination.
+async function createGame() {
+  const response = await fetch(SERVER_URL + "/api/games", {
+    method: "POST",
+    credentials: "include",
+  });
+  return handleResponse(response);
+}
+
+
+// Fetch a single game's state. Includes "steps" only if the game is completed.
+async function getGame(gameId) {
+  const response = await fetch(SERVER_URL + `/api/games/${gameId}`, {
+    credentials: "include",
+  });
+  return handleResponse(response);
+};
+
+
+// Submit a built route. "route" is an array of { fromStationId, toStationId }.
+async function submitRoute(gameId, route) {
+  const response = await fetch(SERVER_URL + `/api/games/${gameId}/submit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ route }),
+  });
+  return handleResponse(response);
+};
+
+
+// Best score per user.
+async function getRanking() {
+  const response = await fetch(SERVER_URL + "/api/ranking", {
+    credentials: "include",
+  });
+  return handleResponse(response);
+};
+
+
 
 // Export all API functions as a single object for convenient import.
-const API = { logIn, getUserInfo, logOut };
+const API = { 
+  logIn, 
+  getUserInfo, 
+  logOut, 
+  getNetworkMap, 
+  getStations, 
+  getSegments,
+  createGame, 
+  getGame, 
+  submitRoute, 
+  getRanking 
+};
 export default API;

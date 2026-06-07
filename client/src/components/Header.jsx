@@ -23,19 +23,25 @@ function Header() {
       <Container>
         {/* App title (clickable, returns to home) */}
         <Navbar.Brand as={Link} to="/">
-          WA1 Exam Project
+          Last Race Through Scranton
         </Navbar.Brand>
 
         {/* Right side: login status */}
         <Nav className="ms-auto align-items-center">
           {user ? (
             <>
-              <Navbar.Text className="me-3">
+              {/* <Navbar.Text className="me-3">
                 Welcome, <strong>{user.name}</strong>
-              </Navbar.Text>
+              </Navbar.Text> */}
               <Button variant="outline-dark" onClick={handleLogout}>
                 Logout
               </Button>
+              <Button
+              variant="outline-dark"
+              onClick={() => navigate("/ranking")}
+            >
+              Ranking
+            </Button>
             </>
           ) : (
             <Button
