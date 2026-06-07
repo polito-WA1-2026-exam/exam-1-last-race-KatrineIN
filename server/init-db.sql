@@ -75,7 +75,7 @@ CREATE TABLE games (
   startStationId INTEGER NOT NULL,
   destinationStationId INTEGER NOT NULL,
   finalScore INTEGER,  -- null until game is complete, stored as 0 if negative og invalid
-  status TEXT NOT NULL CHECK (status IN ('planning','execution','completed')), 
+  status TEXT NOT NULL CHECK (status IN ('planning','completed')), 
   isValid INTEGER,  -- 1 if route was valid, 0 if invalid. NULL during planning.
   createdAt TEXT NOT NULL,  -- ISO 8601 string, e.g. '2026-05-30T10:00:00'
   FOREIGN KEY (userId) REFERENCES users(id),

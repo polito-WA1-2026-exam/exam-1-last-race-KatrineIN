@@ -22,24 +22,6 @@ export const getAllStations = () => {
 
 
 /**
- * Get all metro lines
- * @returns {Promise<Array<{id: number, name: string, color:string}>>} array of lines
- */
-export const getAllLines = () => {
-    return new Promise((resolve, reject) => {
-        const sql = "SELECT * FROM lines ORDER BY id";
-        db.all(sql, [], (err, rows) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(rows);
-            }
-        });
-    });
-};
-
-
-/**
  * Get the full network map for the Setup phase: one object per line,
  * each holding its stations in position order. Grouping is done here so
  * the client receives exactly the shape it needs to draw the map.

@@ -17,7 +17,7 @@ import "./index.css";
 
 
 
-// Protected route wrapper: redirects to /login if user is not authenticated.
+// Protected route wrapper: redirects to / if user is not authenticated.
 // Use this around routes that require login.
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();

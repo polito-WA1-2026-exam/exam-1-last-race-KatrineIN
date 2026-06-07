@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 
 function Timer({ startedAt, durationMs, onExpire }) {
+  // Milliseconds left
   const [remaining, setRemaining] = useState(() =>
     Math.max(0, durationMs - (Date.now() - startedAt))
   );
@@ -11,16 +12,18 @@ function Timer({ startedAt, durationMs, onExpire }) {
   // Keep the latest onExpire in a ref so the interval always calls the current
   // version — otherwise it would close over stale route state from mount time.
   const onExpireRef = useRef(onExpire);
+  // Sync the ref whenever onExpire changes (without restarting the interval below).
   useEffect(() => {
     onExpireRef.current = onExpire;
   }, [onExpire]);
 
+  // timercounts down every 250ms and calls onExpire when it hits zero
   useEffect(() => {
     const interval = setInterval(() => {
       const left = Math.max(0, durationMs - (Date.now() - startedAt));
-      setRemaining(left);
+      setRemaining(left); // update displayed coutdown
       if (left <= 0) {
-        clearInterval(interval);
+        clearInterval(interval); // stop ticking once time is up
         onExpireRef.current(); // call the latest handler -> latest route
       }
     }, 250);
@@ -28,6 +31,7 @@ function Timer({ startedAt, durationMs, onExpire }) {
     return () => clearInterval(interval); // cleanup on unmount or dep change
   }, [startedAt, durationMs]);
 
+  // converts to sec (rounding up so it shows "0s" only when time is actually up)
   const seconds = Math.ceil(remaining / 1000);
 
   return (

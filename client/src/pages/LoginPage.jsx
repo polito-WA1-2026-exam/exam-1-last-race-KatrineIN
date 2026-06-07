@@ -68,6 +68,7 @@ return (
                 value={email}
                 placeholder="example@test.com"
                 onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </Form.Group>
 
@@ -82,7 +83,7 @@ return (
               />
             </Form.Group>
 
-            <Button type="submit" className="btn-brand"
+            <Button type="submit" variant="brand"
 >
               Log In
             </Button>

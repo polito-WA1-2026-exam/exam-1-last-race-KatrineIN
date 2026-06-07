@@ -4,21 +4,6 @@
 import db from "./db.js";
 import crypto from "crypto";
 
-// Retrieve a user by id. Returns the user object or false if not found.
-export const getUserById = (id) => {
-  return new Promise((resolve, reject) => {
-    const sql = "SELECT id, email, name FROM users WHERE id = ?"; // Exclude hash and salt
-    db.get(sql, [id], (err, row) => {
-      if (err) {
-        reject(err);
-      } else if (row === undefined) {
-        resolve(false); // if user not found
-      } else {
-        resolve(row); //
-      }
-    });
-  });
-};
 
 // Verify credentials:
 // look up user by email, hash the submitted password with
@@ -39,7 +24,7 @@ export const getUserByCredentials = (email, password) => {
 
         // Hash submitted password with stored salt. Compare against stored hash.
         crypto.scrypt(password, row.salt, 32, (err, hashedPassword) => {
-          if (err) reject(err);
+          if (err) return reject(err);
           // timingSafeEqual avoids timing-based side-channel attacks.
           if (!crypto.timingSafeEqual(Buffer.from(row.hash, "hex"), hashedPassword)) {
             resolve(false);

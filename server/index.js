@@ -89,7 +89,7 @@ passport.deserializeUser((user, callback) => {
 // read session cookie
 app.use(
   session({
-    secret: "change-this-secret-for-exam",
+    secret: "last-race-dev-secret",
     resave: false,
     saveUninitialized: false,
   }),

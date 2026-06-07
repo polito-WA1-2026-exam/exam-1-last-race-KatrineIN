@@ -37,11 +37,11 @@ function ResultPhase({ result, onPlayAgain }) {
           </div>
 
           <div className="d-flex justify-content-center gap-2">
-            <Button onClick={onPlayAgain} className="btn-brand">
+            <Button onClick={onPlayAgain} variant="brand">
               Play again
             </Button>
 
-            <Button as={Link} to="/ranking" className="btn-brand-outline">
+            <Button as={Link} to="/ranking" variant="brand-outline">
               View ranking
             </Button>
           </div>

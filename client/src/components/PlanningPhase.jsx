@@ -59,21 +59,25 @@ function PlanningPhase({ gameId, start, destination, onSubmitted }) {
     ? route[route.length - 1].toStationId
     : start.id;
 
+  // Set of segment keys already in the route — for fast "already used?" lookups.
   const usedKeys = new Set(
     route.map((s) => segmentKey(s.fromStationId, s.toStationId))
   );
 
+  // Look up a station's name by id (falls back to "#id" if not found).
   const nameOf = (id) =>
     stations.find((s) => s.id === id)?.name ?? `#${id}`;
 
   const selectSegment = (seg) => {
     const key = segmentKey(seg.aId, seg.bId);
 
+    // one secment can only be used once pr route
     if (usedKeys.has(key)) {
       setRouteError("This segment has already been used.");
       return;
     }
 
+    // check if current segment connects to the route so far 
     if (seg.aId === currentStation) {
       setRouteError("");
       setRoute([...route, { fromStationId: seg.aId, toStationId: seg.bId }]);
@@ -81,15 +85,18 @@ function PlanningPhase({ gameId, start, destination, onSubmitted }) {
       setRouteError("");
       setRoute([...route, { fromStationId: seg.bId, toStationId: seg.aId }]);
     } else {
+      // Neither end connects to the current station.
       setRouteError("That segment does not connect to your current station.");
     }
   };
 
+  // Remove the last segment from the route
   const undoLast = () => {
     setRouteError("");
     setRoute(route.slice(0, -1));
   };
 
+  // Clear the whole route
   const resetRoute = () => {
     setRouteError("");
     setRoute([]);
@@ -97,19 +104,21 @@ function PlanningPhase({ gameId, start, destination, onSubmitted }) {
 
   // Submit the current route — called by the button AND on timeout.
   const submit = async () => {
+    // Guard: never submit twice (button + timer could both fire)
     if (submittedRef.current) return;
 
     submittedRef.current = true;
 
     try {
       const result = await API.submitRoute(gameId, route);
-      onSubmitted(result);
+      onSubmitted(result); // report the result back up to GamePage
     } catch {
       submittedRef.current = false;
       setError("Could not submit your route. Please try again.");
     }
   };
 
+  // Wait for data before rendering the main UI.
   if (loading) {
     return (
       <div className="text-center mt-4">
@@ -128,6 +137,7 @@ function PlanningPhase({ gameId, start, destination, onSubmitted }) {
       {/* Title + timer */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="mb-0">Planning</h2>
+        {/* Timer counts down from 90s and auto-submits when it hits zero. */}
         <Timer
           startedAt={startedAt}
           durationMs={PLANNING_MS}
@@ -232,7 +242,7 @@ function PlanningPhase({ gameId, start, destination, onSubmitted }) {
           Reset
         </Button>
 
-        <Button className="btn-brand" onClick={submit}>
+        <Button variant="brand" onClick={submit}>
           Submit route
         </Button>
       </div>
