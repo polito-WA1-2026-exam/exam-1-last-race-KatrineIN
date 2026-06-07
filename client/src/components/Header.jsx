@@ -31,6 +31,9 @@ function Header() {
               <Navbar.Text className="me-3 text-white">
                 Welcome, <strong>{user.name}</strong>
               </Navbar.Text>
+              <Button variant="outline-light" className="me-2" onClick={() => navigate("/game")}>
+                Play
+              </Button>
               <Button variant="outline-light" className="me-2" onClick={() => navigate("/ranking")}>
                 Ranking
               </Button>

@@ -174,8 +174,8 @@ body {
 
 .planning-map {
   width: 100%;
-  max-width: 800px;
-  max-height: 280px;
+  max-width: 850px;
+  max-height: 300px;
   object-fit: contain;
 }
 

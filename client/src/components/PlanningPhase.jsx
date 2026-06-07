@@ -188,10 +188,6 @@ function PlanningPhase({ gameId, start, destination, onSubmitted }) {
       <section className="mb-4">
         <h4>Choose next segment</h4>
 
-        <p className="text-muted small">
-          Select segments in sequence. Each segment may only be used once.
-        </p>
-
         {routeError && (
           <Alert variant="warning" className="py-2">
             {routeError}
