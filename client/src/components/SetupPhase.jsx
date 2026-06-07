@@ -15,31 +15,26 @@ function SetupPhase({ onStart }) {
   };
 
   return (
-    <div>
-      <h2>Setup — Network map</h2>
-      <p className="text-muted">
-        Study the lines and stations. When you are ready, start the game to get
-        your route assignment.
-      </p>
+  <div className="setup-page text-center">
+    <h2 className="setup-title">Network map</h2>
 
-      <Button
-        variant="brand"
-        onClick={handleStartClick}
-        disabled={starting}
-        className="btn-brand"
-      >
-        {starting ? "Starting..." : "Start game"}
-      </Button>
+    <p className="text-muted setup-text">
+      Study the lines and stations. When you are ready, start the game and begin planning!
+    </p>
 
-      <div className="text-center">
-        <img
-          src={networkFull}
-          alt="Full network map with all lines and stations"
-          style={{ maxWidth: "100%", maxHeight: "60vh" }}
-        />
-      </div>
+    <div className="setup-map-wrapper">
+      <img
+        src={networkFull}
+        alt="Full network map with lines and stations"
+        className="setup-map"
+      />
     </div>
-  );
+
+    <Button className="btn-brand mt-3" onClick={handleStartClick}>
+      Start game
+    </Button>
+  </div>
+);
 }
 
 export default SetupPhase;

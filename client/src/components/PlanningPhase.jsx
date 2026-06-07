@@ -3,7 +3,7 @@
 // list, and a countdown that auto-submits on expiry.
 
 import { useState, useEffect, useRef } from "react";
-import { Alert, Button, Card, Row, Col, ListGroup, Spinner, Badge } from "react-bootstrap";
+import { Alert, Button, Card, Row, Col, Spinner, Badge } from "react-bootstrap";
 import API from "../API.js";
 import Timer from "./Timer.jsx";
 import networkStations from "../assets/network-stations.png";
@@ -20,13 +20,19 @@ function PlanningPhase({ gameId, start, destination, onSubmitted }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Shown when the player clicks a segment that cannot extend the route.
+  const [routeError, setRouteError] = useState("");
+
   const [startedAt] = useState(() => Date.now()); // 90s window starts on mount
-  const submittedRef = useRef(false);             // guard: never submit twice
+  const submittedRef = useRef(false); // guard: never submit twice
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [st, sg] = await Promise.all([API.getStations(), API.getSegments()]);
+        const [st, sg] = await Promise.all([
+          API.getStations(),
+          API.getSegments(),
+        ]);
         setStations(st);
         setSegments(sg);
       } catch {
@@ -35,34 +41,66 @@ function PlanningPhase({ gameId, start, destination, onSubmitted }) {
         setLoading(false);
       }
     };
+
     load();
   }, []);
 
   // Defensive: don't render until the assignment props are present.
   if (!start || !destination) {
-    return <div className="text-center mt-4"><Spinner animation="border" /></div>;
+    return (
+      <div className="text-center mt-4">
+        <Spinner animation="border" />
+      </div>
+    );
   }
 
-  // Where the route currently ends (the start station if nothing selected yet).
-  const currentStation = route.length ? route[route.length - 1].toStationId : start.id;
-  const usedKeys = new Set(route.map((s) => segmentKey(s.fromStationId, s.toStationId)));
-  const nameOf = (id) => stations.find((s) => s.id === id)?.name ?? `#${id}`;
+  // Where the route currently ends: start station if nothing selected yet.
+  const currentStation = route.length
+    ? route[route.length - 1].toStationId
+    : start.id;
+
+  const usedKeys = new Set(
+    route.map((s) => segmentKey(s.fromStationId, s.toStationId))
+  );
+
+  const nameOf = (id) =>
+    stations.find((s) => s.id === id)?.name ?? `#${id}`;
 
   const selectSegment = (seg) => {
+    const key = segmentKey(seg.aId, seg.bId);
+
+    if (usedKeys.has(key)) {
+      setRouteError("This segment has already been used.");
+      return;
+    }
+
     if (seg.aId === currentStation) {
+      setRouteError("");
       setRoute([...route, { fromStationId: seg.aId, toStationId: seg.bId }]);
     } else if (seg.bId === currentStation) {
+      setRouteError("");
       setRoute([...route, { fromStationId: seg.bId, toStationId: seg.aId }]);
+    } else {
+      setRouteError("That segment does not connect to your current station.");
     }
   };
 
-  const undoLast = () => setRoute(route.slice(0, -1));
-  const resetRoute = () => setRoute([]);
+  const undoLast = () => {
+    setRouteError("");
+    setRoute(route.slice(0, -1));
+  };
+
+  const resetRoute = () => {
+    setRouteError("");
+    setRoute([]);
+  };
 
   // Submit the current route — called by the button AND on timeout.
   const submit = async () => {
     if (submittedRef.current) return;
+
     submittedRef.current = true;
+
     try {
       const result = await API.submitRoute(gameId, route);
       onSubmitted(result);
@@ -73,8 +111,13 @@ function PlanningPhase({ gameId, start, destination, onSubmitted }) {
   };
 
   if (loading) {
-    return <div className="text-center mt-4"><Spinner animation="border" /> Loading...</div>;
+    return (
+      <div className="text-center mt-4">
+        <Spinner animation="border" /> Loading...
+      </div>
+    );
   }
+
   if (error) {
     return <Alert variant="danger">{error}</Alert>;
   }
@@ -82,149 +125,124 @@ function PlanningPhase({ gameId, start, destination, onSubmitted }) {
   const atDestination = currentStation === destination.id;
 
   return (
-  <div>
-    {/* Title + timer */}
-    <div className="d-flex justify-content-between align-items-center mb-3">
-      <h2 className="mb-0">Planning</h2>
-      <Timer startedAt={startedAt} durationMs={PLANNING_MS} onExpire={submit} />
-    </div>
+    <div className="planning-page">
+      {/* Title + timer */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="mb-0">Planning</h2>
+        <Timer
+          startedAt={startedAt}
+          durationMs={PLANNING_MS}
+          onExpire={submit}
+        />
+      </div>
 
-    {/* Map first */}
-    <Card className="mb-3 shadow-sm">
-      <Card.Body className="text-center py-2">
+      {/* Mission box */}
+      <Card className="mission-card mb-4 shadow-sm">
+        <Card.Body>
+          <div className="mission-content">
+            <div className="mission-station">
+              <div className="text-muted small">Start</div>
+              <h5>{start.name}</h5>
+            </div>
+
+            <div className="mission-arrow">→</div>
+
+            <div className="mission-station">
+              <div className="text-muted small">Destination</div>
+              <h5>{destination.name}</h5>
+            </div>
+          </div>
+        </Card.Body>
+      </Card>
+
+      {/* Map */}
+      <div className="text-center mb-4">
         <img
           src={networkStations}
           alt="Stations only, without lines"
-          style={{ maxWidth: "100%", maxHeight: "34vh" }}
+          className="planning-map"
         />
-      </Card.Body>
-    </Card>
+      </div>
 
-    {/* Mission box */}
-    <Card className="mb-3 shadow-sm">
-      <Card.Body className="py-3">
-        <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
-          <div>
-            <div className="text-muted small">Start</div>
-            <h5 className="mb-0">{start.name}</h5>
-          </div>
+      {/* Route so far */}
+      <section className="mb-4">
+        <h4>Your route so far</h4>
 
-          <div className="fs-3 text-muted">→</div>
-
-          <div>
-            <div className="text-muted small">Destination</div>
-            <h5 className="mb-0">{destination.name}</h5>
-          </div>
-
-          <div className="ms-auto">
-            <Badge bg={atDestination ? "success" : "secondary"} className="fs-6">
-              Currently at: {nameOf(currentStation)}
-            </Badge>
-          </div>
-        </div>
-      </Card.Body>
-    </Card>
-
-    <Row className="g-3">
-      {/* Segment list */}
-      <Col md={7}>
-        <Card className="shadow-sm h-100">
+        <Card className="shadow-sm">
           <Card.Body>
-            <h5>Available segments</h5>
-
-            <p className="text-muted small mb-3">
-              Pick a segment connected to <strong>{nameOf(currentStation)}</strong>.
-            </p>
-
-            <ListGroup style={{ maxHeight: 330, overflowY: "auto" }}>
-              {segments.map((seg) => {
-                const key = segmentKey(seg.aId, seg.bId);
-                const used = usedKeys.has(key);
-                const connects =
-                  seg.aId === currentStation || seg.bId === currentStation;
-
-                return (
-                  <ListGroup.Item
-                    key={key}
-                    action
-                    disabled={used || !connects}
-                    onClick={() => selectSegment(seg)}
-                    className={connects && !used ? "segment-available" : ""}
-                  >
-                    {seg.aName} — {seg.bName}
-
-                    {used && (
-                      <Badge bg="secondary" className="ms-2">
-                        used
-                      </Badge>
-                    )}
-                  </ListGroup.Item>
-                );
-              })}
-            </ListGroup>
-          </Card.Body>
-        </Card>
-      </Col>
-
-      {/* Route builder */}
-      <Col md={5}>
-        <Card className="shadow-sm h-100">
-          <Card.Body>
-            <h5>Your route</h5>
-
             {route.length === 0 ? (
-              <p className="text-muted">
-                No segments selected yet. Start from{" "}
-                <strong>{start.name}</strong>.
-              </p>
+              <span>{start.name}</span>
             ) : (
-              <div className="route-box mb-3">
+              <span>
                 <strong>{nameOf(start.id)}</strong>
                 {route.map((s, i) => (
                   <span key={i}> → {nameOf(s.toStationId)}</span>
                 ))}
-              </div>
+              </span>
             )}
-
-            {atDestination && route.length > 0 && (
-              <Alert variant="success" className="py-2">
-                Destination reached. You can submit the route.
-              </Alert>
-            )}
-
-            <p className="mb-2">
-              Current station: <strong>{nameOf(currentStation)}</strong>
-            </p>
-
-            <div className="d-flex gap-2 mb-3">
-              <Button
-                variant="outline-secondary"
-                size="sm"
-                onClick={undoLast}
-                disabled={route.length === 0}
-              >
-                Undo
-              </Button>
-
-              <Button
-                variant="outline-secondary"
-                size="sm"
-                onClick={resetRoute}
-                disabled={route.length === 0}
-              >
-                Reset
-              </Button>
-            </div>
-
-            <Button className="btn-brand" onClick={submit}>
-              Submit route
-            </Button>
           </Card.Body>
         </Card>
-      </Col>
-    </Row>
-  </div>
-);
+      </section>
+
+      {/* Choose next segment */}
+      <section className="mb-4">
+        <h4>Choose next segment</h4>
+
+        <p className="text-muted small">
+          Select segments in sequence. Each segment may only be used once.
+        </p>
+
+        {routeError && (
+          <Alert variant="warning" className="py-2">
+            {routeError}
+          </Alert>
+        )}
+
+        <Row className="g-2">
+          {segments.map((seg) => {
+            const key = segmentKey(seg.aId, seg.bId);
+            const used = usedKeys.has(key);
+
+            return (
+              <Col md={6} key={key}>
+                <Button
+                  className="segment-button"
+                  disabled={used}
+                  onClick={() => selectSegment(seg)}
+                >
+                  {seg.aName} ↔ {seg.bName}
+                  {used && <span className="ms-2">✓</span>}
+                </Button>
+              </Col>
+            );
+          })}
+        </Row>
+      </section>
+
+      {/* Controls */}
+      <div className="d-flex gap-2 mb-4">
+        <Button
+          variant="outline-secondary"
+          onClick={undoLast}
+          disabled={route.length === 0}
+        >
+          Undo last step
+        </Button>
+
+        <Button
+          variant="outline-secondary"
+          onClick={resetRoute}
+          disabled={route.length === 0}
+        >
+          Reset
+        </Button>
+
+        <Button className="btn-brand" onClick={submit}>
+          Submit route
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 export default PlanningPhase;
