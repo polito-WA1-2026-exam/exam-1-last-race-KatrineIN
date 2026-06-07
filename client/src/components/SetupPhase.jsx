@@ -30,7 +30,7 @@ function SetupPhase({ onStart }) {
       />
     </div>
 
-    <Button className="btn-brand mt-3" onClick={handleStartClick}>
+    <Button className="btn-brand mt-3" onClick={handleStartClick} disabled={starting}>
       Start game
     </Button>
   </div>

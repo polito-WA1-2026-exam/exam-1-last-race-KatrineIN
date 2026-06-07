@@ -3,7 +3,7 @@
 // list, and a countdown that auto-submits on expiry.
 
 import { useState, useEffect, useRef } from "react";
-import { Alert, Button, Card, Row, Col, Spinner, Badge } from "react-bootstrap";
+import { Alert, Button, Card, Row, Col, Spinner } from "react-bootstrap";
 import API from "../API.js";
 import Timer from "./Timer.jsx";
 import networkStations from "../assets/network-stations.png";
@@ -122,7 +122,6 @@ function PlanningPhase({ gameId, start, destination, onSubmitted }) {
     return <Alert variant="danger">{error}</Alert>;
   }
 
-  const atDestination = currentStation === destination.id;
 
   return (
     <div className="planning-page">
