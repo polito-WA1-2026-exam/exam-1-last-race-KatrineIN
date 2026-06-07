@@ -1,111 +1,158 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
+/* Minimal global styles — Bootstrap handles layout, fonts, and colours. */
 body {
   margin: 0;
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
+/* App theme — change the brand colour in ONE place. */
+:root {
+  --brand: #1b4965;
+  --brand-dark: #113044;
+  --brand-light: #e5f2fa;
+}
+
+/* Primary call-to-action button in the brand colour (all states). */
+.btn-brand {
+  background-color: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+.btn-brand:hover {
+  background-color: var(--brand-dark);
+  border-color: var(--brand-dark);
+  color: #fff;
+}
+.btn-brand:focus,
+.btn-brand:focus-visible,
+.btn-brand:active {
+  background-color: var(--brand-dark);
+  border-color: var(--brand-dark);
+  color: white;
+  box-shadow: none; /* remove the default blue focus ring */
+}
+
+.btn-brand-outline {
+  background-color: transparent;
+  border: 1px solid var(--brand);
+  color: var(--brand);
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+}
+
+.btn-brand-outline:hover {
+  background-color: var(--brand-light);
+  color: var(--brand-dark);
+  border-color: var(--brand-dark);
+
+}
+
+.btn-brand-outline:focus,
+.btn-brand-outline:focus-visible,
+.btn-brand-outline:active {
+  background-color: var(--brand-dark);
+  border-color: var(--brand-dark);
+  color: white;
+  box-shadow: none;
+}
+
+.home-page {
+  max-width: 850px;
   margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+  padding-top: 2rem;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+
+.table-brand-light {
+  --bs-table-bg: var(--brand-light);
+  --bs-table-striped-bg: var(--brand-light);
+  --bs-table-hover-bg: #c4dceb;
+  --bs-table-color: var(--brand-dark);
+  --bs-table-border-color: #b8d3e4;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
+.segment-available {
+  font-weight: 600;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+.segment-available:not(.disabled) {
+  background-color: var(--brand-light);
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+.route-box {
+  background-color: #f8f9fa;
+  border-left: 4px solid var(--brand);
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+}
+
+.execution-list {
+  max-width: 900px;
+}
+
+.execution-step {
+  padding: 1.1rem 1.25rem;
+}
+
+.event-text {
+  font-size: 1.15rem;
+}
+
+.event-badge {
+  font-size: 1rem;
+  min-width: 3rem;
+}
+
+.coins-text {
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+
+.result-page {
+  max-width: 650px;
+  margin: 3rem auto 0;
+}
+
+.result-card {
+  border-radius: 12px;
+}
+
+.result-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.score-box {
+  background-color: var(--brand-light);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.score-number {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--brand-dark);
+}
+
+.score-number span {
+  font-size: 2rem;
+}
+
+.ranking-page {
+  max-width: 950px;
+}
+
+.ranking-icon {
+  font-size: 2.7rem;
+  line-height: 1;
+}
+
+.ranking-table {
+  background-color: white;
+}
+
+.ranking-table th {
+  background-color: #f8f9fa;
+}
+
+.rank-number {
+  font-size: 1.2rem;
 }

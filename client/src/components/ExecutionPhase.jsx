@@ -20,28 +20,56 @@ function ExecutionPhase({ result, onFinished }) {
   const done = visibleCount >= steps.length;
 
   return (
-    <div>
-      <h2>Execution</h2>
-      <p className="text-muted">Your journey unfolds one segment at a time…</p>
+  <div>
+    <h2>Execution</h2>
+    <p className="text-muted">
+      Your journey unfolds one segment at a time...
+    </p>
 
-      <ListGroup className="mb-3">
-        {steps.slice(0, visibleCount).map((step) => (
-          <ListGroup.Item key={step.stepNumber}>
-            <div><strong>{step.fromStationName} → {step.toStationName}</strong></div>
-            <div>
-              {step.eventDescription}{" "}
-              <Badge bg={step.eventEffect >= 0 ? "success" : "danger"}>
-                {step.eventEffect >= 0 ? `+${step.eventEffect}` : step.eventEffect}
-              </Badge>
+    <ListGroup className="mb-3 execution-list">
+      {steps.slice(0, visibleCount).map((step) => (
+        <ListGroup.Item key={step.stepNumber} className="execution-step">
+          <div className="d-flex justify-content-between align-items-start gap-3">
+            <div className="flex-grow-1">
+              <div className="fw-bold mb-2">
+                {step.fromStationName} → {step.toStationName}
+              </div>
+
+              <div className="event-text d-flex align-items-center gap-2">
+                <Badge
+                  bg={
+                    step.eventEffect > 0
+                      ? "success"
+                      : step.eventEffect < 0
+                      ? "danger"
+                      : "secondary"
+                  }
+                  className="event-badge"
+                >
+                  {step.eventEffect > 0
+                    ? `+${step.eventEffect}`
+                    : step.eventEffect}
+                </Badge>
+
+                <span>{step.eventDescription}</span>
+              </div>
             </div>
-            <div>Coins: <strong>{step.remainingCoins}</strong></div>
-          </ListGroup.Item>
-        ))}
-      </ListGroup>
 
-      {done && <Button onClick={onFinished}>See result</Button>}
-    </div>
-  );
+            <div className="coins-text text-end">
+              <strong>{step.remainingCoins}</strong> 🪙
+            </div>
+          </div>
+        </ListGroup.Item>
+      ))}
+    </ListGroup>
+
+    {done && (
+      <Button onClick={onFinished} className="btn-brand">
+        See result
+      </Button>
+    )}
+  </div>
+);
 }
 
 export default ExecutionPhase;

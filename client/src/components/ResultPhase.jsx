@@ -1,27 +1,52 @@
 // ResultPhase: shows the final score and lets the player start a new game.
 
-import { Alert, Button } from "react-bootstrap";
+import { Alert, Button, Card } from "react-bootstrap";
 import { Link } from "react-router";
 
 function ResultPhase({ result, onPlayAgain }) {
+  const valid = result.isValid;
+  const score = valid ? result.finalScore : 0;
+
   return (
-    <div>
-      <h2>Result</h2>
+    <div className="result-page">
+      <Card className="result-card shadow-sm">
+        <Card.Body className="text-center p-4">
+          <div className="result-icon">
+            {valid ? "🏁" : "🚧"}
+          </div>
 
-      {result.isValid ? (
-        <Alert variant="success">
-          You reached the destination! Final score: <strong>{result.finalScore}</strong> coins.
-        </Alert>
-      ) : (
-        <Alert variant="danger">
-          Your route was invalid or incomplete — you lost all your coins. Final score: <strong>0</strong>.
-        </Alert>
-      )}
+          <h2 className="mb-3">
+            {valid ? "Destination reached!" : "Route failed"}
+          </h2>
 
-      <div className="d-flex gap-2">
-        <Button onClick={onPlayAgain}>Play again</Button>
-        <Button as={Link} to="/ranking" variant="outline-primary">View ranking</Button>
-      </div>
+          {valid ? (
+            <Alert variant="success" className="mb-4">
+              You reached the destination and finished the race.
+            </Alert>
+          ) : (
+            <Alert variant="danger" className="mb-4">
+              Your route was invalid or incomplete, so you lost all your coins.
+            </Alert>
+          )}
+
+          <div className="score-box mb-4">
+            <div className="text-muted">Final score</div>
+            <div className="score-number">
+              {score} <span>🪙</span>
+            </div>
+          </div>
+
+          <div className="d-flex justify-content-center gap-2">
+            <Button onClick={onPlayAgain} className="btn-brand">
+              Play again
+            </Button>
+
+            <Button as={Link} to="/ranking" className="btn-brand-outline">
+              View ranking
+            </Button>
+          </div>
+        </Card.Body>
+      </Card>
     </div>
   );
 }

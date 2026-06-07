@@ -22,16 +22,21 @@ function SetupPhase({ onStart }) {
         your route assignment.
       </p>
 
-      <img
-        src={networkFull}
-        alt="Full network map with all lines and stations"
-        style={{ maxWidth: "100%", height: "auto" }}
-      />
+      <Button
+        variant="brand"
+        onClick={handleStartClick}
+        disabled={starting}
+        className="btn-brand"
+      >
+        {starting ? "Starting..." : "Start game"}
+      </Button>
 
-      <div className="mt-3">
-        <Button onClick={handleStartClick} disabled={starting}>
-          {starting ? "Starting..." : "Start game"}
-        </Button>
+      <div className="text-center">
+        <img
+          src={networkFull}
+          alt="Full network map with all lines and stations"
+          style={{ maxWidth: "100%", maxHeight: "60vh" }}
+        />
       </div>
     </div>
   );

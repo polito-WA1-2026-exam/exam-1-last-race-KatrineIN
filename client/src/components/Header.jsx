@@ -12,42 +12,34 @@ function Header() {
   const handleLogout = async () => {
     try {
       await logout();
-      //navigate("/login"); // redirect to login page after logout
     } catch (err) {
       console.error("Logout failed:", err);
     }
   };
 
   return (
-    <Navbar bg="light" variant="light" expand="lg">
-      <Container>
+<Navbar variant="dark" expand="lg" style={{ backgroundColor: "var(--brand)" }}>      <Container>
         {/* App title (clickable, returns to home) */}
-        <Navbar.Brand as={Link} to="/">
-          Last Race Through Scranton
+        <Navbar.Brand as={Link} to="/" className="fw-normal">
+          🚇 Last Race Through Scranton
         </Navbar.Brand>
 
         {/* Right side: login status */}
         <Nav className="ms-auto align-items-center">
           {user ? (
             <>
-              {/* <Navbar.Text className="me-3">
+              <Navbar.Text className="me-3 text-white">
                 Welcome, <strong>{user.name}</strong>
-              </Navbar.Text> */}
-              <Button variant="outline-dark" onClick={handleLogout}>
+              </Navbar.Text>
+              <Button variant="outline-light" className="me-2" onClick={() => navigate("/ranking")}>
+                Ranking
+              </Button>
+              <Button variant="outline-light" onClick={handleLogout}>
                 Logout
               </Button>
-              <Button
-              variant="outline-dark"
-              onClick={() => navigate("/ranking")}
-            >
-              Ranking
-            </Button>
             </>
           ) : (
-            <Button
-              variant="outline-dark"
-              onClick={() => navigate("/login")}
-            >
+            <Button variant="outline-light" onClick={() => navigate("/login")}>
               Login
             </Button>
           )}
